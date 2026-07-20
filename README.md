@@ -94,12 +94,13 @@ For a faster smoke test, reduce the number of replicates:
 uv run python run_analysis.py --stage sampling --sampling-replicates 2 --sampling-levels 5,10
 ```
 
-Figure A3 uses the GLORYS cp1 = 0 contour to define the negative deep-south
-region south of 50S, then reproduces the Figure 7 trend panels within that
-mask:
+Figures A3-A5 use GLORYS cp1 = 0 and the SAF to reproduce the Figure 7 trend
+panels within regional masks. A3 is the cp1-positive deep region south of 50S,
+A4 is the cp1-negative shallow region, and A5 is the cp1-positive deep region
+north of the SAF:
 
 ```bash
-uv run python run_analysis.py --stage figures --figures A3
+uv run python run_analysis.py --stage figures --figures A3 A4 A5
 ```
 
 Run individual scripts directly:
