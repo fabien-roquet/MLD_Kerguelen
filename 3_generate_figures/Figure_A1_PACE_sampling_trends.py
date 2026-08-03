@@ -9,9 +9,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from scipy.stats import linregress
 
 from figure_common import G_COLOR, LEGEND_FS, parse_project_root_arg, paths, require_file, save_figure
+from trend_common import ar1_gls_trend
 
 
 SAMPLING_COLORS = {
@@ -27,12 +27,12 @@ def sampling_dir(project_root: str | Path) -> Path:
     return paths(project_root)["root"] / "processed" / "2_fPCA" / "GLORYS_random_sampling"
 
 
-def fit_line(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float]:
+def fit_line(x: np.ndarray, y: np.ndarray) -> tuple[float, float]:
     valid = np.isfinite(x) & np.isfinite(y)
     if valid.sum() < 8:
-        return np.nan, np.nan, np.nan
-    lr = linregress(x[valid], y[valid])
-    return float(lr.intercept), float(lr.slope), float(lr.pvalue)
+        return np.nan, np.nan
+    trend = ar1_gls_trend(x[valid], y[valid])
+    return float(trend.intercept - trend.slope * trend.x_mean), float(trend.slope)
 
 
 def format_slope(mean: float, std: float) -> str:
@@ -106,7 +106,7 @@ def main() -> None:
             ax.fill_between(year, mean - std, mean + std, color=color, alpha=0.12, linewidth=0)
         ax.plot(year, mean, marker="o", ms=4, lw=1.5 if percentage != 100 else 2.2, color=color, alpha=0.85)
 
-        intercept, slope, _ = fit_line(year, mean)
+        intercept, slope = fit_line(year, mean)
         if np.isfinite(slope):
             ax.plot(year, intercept + slope * year, color=color, lw=2.2, linestyle="-" if percentage == 100 else "--")
 

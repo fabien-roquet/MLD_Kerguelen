@@ -42,6 +42,8 @@ FIGURE_SCRIPTS = {
     "A3": PROJECT_ROOT / "3_generate_figures" / "Figure_A3_deep_region_trends.py",
     "A4": PROJECT_ROOT / "3_generate_figures" / "Figure_A4_shallow_region_trends.py",
     "A5": PROJECT_ROOT / "3_generate_figures" / "Figure_A5_deep_north_saf_trends.py",
+    "S1": PROJECT_ROOT / "3_generate_figures" / "Figure_S1_regions_trends.py",
+    "S2": PROJECT_ROOT / "3_generate_figures" / "Figure_S2_PACE_K_diagnostics.py",
 }
 
 DEFAULT_FIGURES = ["2", "3", "4", "5", "6", "7", "8", "9", "10"]

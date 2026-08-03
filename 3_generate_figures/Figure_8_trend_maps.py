@@ -7,38 +7,12 @@ import argparse
 
 import matplotlib.pyplot as plt
 import numpy as np
-import xarray as xr
 
 from figure_common import add_common_map_layers, cmo, load_fpca, parse_project_root_arg, paths, save_figure, topo_fronts
+from trend_common import seasonal_trend_map
 
 
-def seasonal_trend_map(ds_in, months, min_years=8):
-    da = ds_in["mld"]
-    sub = da.where(da["time"].dt.month.isin(months), drop=True)
-    if set(months) == {12, 1, 2}:
-        season_year = xr.where(sub["time"].dt.month == 12, sub["time"].dt.year + 1, sub["time"].dt.year)
-    else:
-        season_year = sub["time"].dt.year
-    da_y = sub.groupby(season_year.rename("season_year")).mean("time", skipna=True)
-    x = da_y["season_year"].astype(float)
-
-    def _slope(y, x_values, min_points=8):
-        valid = np.isfinite(y) & np.isfinite(x_values)
-        if valid.sum() < min_points:
-            return np.nan
-        return np.polyfit(x_values[valid], y[valid], 1)[0]
-
-    return xr.apply_ufunc(
-        _slope,
-        da_y,
-        x,
-        input_core_dims=[["season_year"], ["season_year"]],
-        output_core_dims=[[]],
-        vectorize=True,
-        dask="allowed",
-        kwargs={"min_points": min_years},
-        output_dtypes=[float],
-    )
+N_RECONSTRUCTION_MODES = 50
 
 
 def main() -> None:
@@ -47,7 +21,7 @@ def main() -> None:
     plt.rcParams.update({"font.size": 20})
 
     elevation, ds_front = topo_fronts(args.project_root)
-    fpca = load_fpca(args.project_root)
+    fpca = load_fpca(args.project_root, max_modes=N_RECONSTRUCTION_MODES)
     ds_map = {"GLORYS": fpca["GLORYS"][0], "GLORYS_CL": fpca["GLORYS_CL"][0], "CMA": fpca["CMA"][0]}
     periods = {"Annual": list(range(1, 13)), "Summer (JFM)": [1, 2, 3], "Winter (JAS)": [7, 8, 9]}
     dataset_order = ["GLORYS", "GLORYS_CL", "CMA"]
@@ -70,7 +44,11 @@ def main() -> None:
         for j, d_name in enumerate(dataset_order):
             ax = axes[i, j]
             tr = trend_maps_period_dataset[period_name][d_name]
-            im = ax.pcolormesh(tr["long"], tr["lat"], tr.transpose("lat", "long"), shading="auto", cmap=cmo.balance, vmin=-2, vmax=2)
+            slope = tr["slope"]
+            im = ax.pcolormesh(slope["long"], slope["lat"], slope.transpose("lat", "long"), shading="auto", cmap=cmo.balance, vmin=-2, vmax=2)
+            significant = tr["significant"].transpose("lat", "long").values > 0
+            lon2d, lat2d = np.meshgrid(slope["long"].values, slope["lat"].values)
+            ax.scatter(lon2d[significant], lat2d[significant], s=3, c="k", marker=".", alpha=0.65, linewidths=0)
             add_common_map_layers(ax, elevation, ds_front)
             ax.set_xlabel("Longitude [deg E]" if i == len(periods) - 1 else "")
             ax.set_ylabel("Latitude [deg N]" if j == 0 else "")

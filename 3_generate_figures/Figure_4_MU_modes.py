@@ -42,7 +42,8 @@ def main() -> None:
         for label, ds, _, color in datasets:
             if var in ds:
                 ve = var_exp[label][n - 1] if n - 1 < len(var_exp[label]) else float("nan")
-                ax_i.plot(ds.time, ds[var], color=color, linewidth=2, label=f"{var_name}: {ve:.1f}%")
+                dataset_label = r"GLORYS$_{\mathregular{CL}}$" if label == "GLORYS_CL" else label
+                ax_i.plot(ds.time, ds[var], color=color, linewidth=2, label=f"{dataset_label}: {var_name} ({ve:.1f}%)")
         ax_i.legend(loc="upper center", fontsize=LEGEND_FS, ncol=3)
         ax_i.set_ylim(-1, 1)
         ax_i.set_ylabel(rf"$\xi_{{{n}}}$")

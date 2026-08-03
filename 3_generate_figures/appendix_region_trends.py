@@ -8,12 +8,13 @@ from typing import Callable
 import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
-from scipy.stats import linregress
 
 from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, load_fpca, paths, save_figure, topo_fronts
+from trend_common import ar1_gls_trend, format_number, format_trend_ci, seasonal_domain_series
 
 
 MaskFunction = Callable[[xr.Dataset, xr.Dataset], xr.DataArray]
+N_RECONSTRUCTION_MODES = 50
 
 
 def latitude_grid(ds: xr.Dataset) -> xr.DataArray:
@@ -41,20 +42,35 @@ def saf_latitude_grid(ds: xr.Dataset, fronts: xr.Dataset) -> xr.DataArray:
     return saf2d
 
 
-def seasonal_series_masked(ds_in: xr.Dataset, months: list[int], mask: xr.DataArray) -> xr.DataArray:
-    ts = ds_in["mld"].where(mask).mean(dim=("long", "lat"), skipna=True)
-    sub = ts.where(ts["time"].dt.month.isin(months), drop=True)
-    if set(months) == {12, 1, 2}:
-        season_year = xr.where(sub["time"].dt.month == 12, sub["time"].dt.year + 1, sub["time"].dt.year)
-    else:
-        season_year = sub["time"].dt.year
-    return sub.groupby(season_year.rename("season_year")).mean("time", skipna=True)
+def region_a_mask(ds_glorys: xr.Dataset, fronts: xr.Dataset) -> xr.DataArray:
+    """Deep region north of the SAF inside the GLORYS cp1 positive lobe."""
+    return (latitude_grid(ds_glorys) > saf_latitude_grid(ds_glorys, fronts)) & (ds_glorys["xi1"] > 0.0)
+
+
+def region_b_mask(ds_glorys: xr.Dataset, fronts: xr.Dataset) -> xr.DataArray:
+    """Deep-south region inside the GLORYS cp1 positive lobe."""
+    _ = fronts
+    return (latitude_grid(ds_glorys) < -50.0) & (ds_glorys["xi1"] > 0.0)
+
+
+def region_c_mask(ds_glorys: xr.Dataset, fronts: xr.Dataset) -> xr.DataArray:
+    """Shallow region inside the GLORYS cp1 negative lobe."""
+    _ = fronts
+    return ds_glorys["xi1"] < 0.0
+
+
+def regional_masks(ds_glorys: xr.Dataset, fronts: xr.Dataset) -> dict[str, tuple[str, xr.DataArray]]:
+    return {
+        "A": ("Deep north of SAF", region_a_mask(ds_glorys, fronts)),
+        "B": ("Deep south", region_b_mask(ds_glorys, fronts)),
+        "C": ("Shallow cp1", region_c_mask(ds_glorys, fronts)),
+    }
 
 
 def plot_region_trends(project_root: str | Path, mask_func: MaskFunction, mask_label: str, output_name: str) -> None:
     plt.rcParams.update({"font.size": 20})
 
-    fpca = load_fpca(project_root)
+    fpca = load_fpca(project_root, max_modes=N_RECONSTRUCTION_MODES)
     _, fronts = topo_fronts(project_root)
     ds_map = {"GLORYS": fpca["GLORYS"][0], "GLORYS_CL": fpca["GLORYS_CL"][0], "CMA": fpca["CMA"][0]}
     colors = {"GLORYS": G_COLOR, "GLORYS_CL": CL_COLOR, "CMA": CMA_COLOR}
@@ -69,21 +85,21 @@ def plot_region_trends(project_root: str | Path, mask_func: MaskFunction, mask_l
     fig.subplots_adjust(left=0.1, right=0.98, bottom=0.07, top=0.98, hspace=0.06)
     for ax, (sname, months), letter in zip(axes, season_months.items(), ["a", "b", "c"]):
         for name, ds_in in ds_map.items():
-            ts_y = seasonal_series_masked(ds_in, months, mask)
+            ts_y = seasonal_domain_series(ds_in, months, mask=mask)
             x = ts_y["season_year"].values.astype(float)
             y = ts_y.values
             valid = np.isfinite(x) & np.isfinite(y)
             ax.plot(x[valid], y[valid], marker="o", ms=4, lw=1.3, color=colors[name], alpha=0.5, label="_nolegend_")
             if valid.sum() >= 8:
-                lr = linregress(x[valid], y[valid])
-                yhat = lr.intercept + lr.slope * x[valid]
+                trend = ar1_gls_trend(x, y)
+                yhat = trend.predict(x[valid])
                 label = r"GLORYS$_{\mathregular{CL}}$" if name == "GLORYS_CL" else name
                 ax.plot(
                     x[valid],
                     yhat,
                     lw=2.2,
                     color=colors[name],
-                    label=f"{label}: {lr.slope:.2f} m yr$^{{-1}}$ (p={lr.pvalue:.2f})",
+                    label=rf"{label}: {format_trend_ci(trend)} m yr$^{{-1}}$ ($p_{{AR1}}$={format_number(trend.pvalue)})",
                 )
         ax.set_ylabel("MLD [m]")
         ax.axhline(0, color="k", linestyle="--", linewidth=1)

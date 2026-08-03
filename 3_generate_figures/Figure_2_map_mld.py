@@ -11,6 +11,10 @@ from matplotlib.ticker import FormatStrFormatter
 from figure_common import add_common_map_layers, cmo, kerguelen_mask, open_gridded, parse_project_root_arg, paths, save_figure, topo_fronts
 
 
+SECTION_START = (72.0, -52.5)
+SECTION_END = (79.0, -47.0)
+
+
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
@@ -30,6 +34,14 @@ def main() -> None:
     for ax, img in zip(axs, [ds1.mld, ds2.mld, ds3.mld]):
         pcm = img.plot(x="longitude", cmap=cmo.deep, add_colorbar=False, ax=ax, vmin=0, vmax=200)
         add_common_map_layers(ax, elevation, ds_front, front_color="white")
+        ax.plot(
+            [SECTION_START[0], SECTION_END[0]],
+            [SECTION_START[1], SECTION_END[1]],
+            color="#E69F00",
+            lw=2.2,
+            solid_capstyle="round",
+        )
+        ax.text(SECTION_START[0] - 0.45, SECTION_START[1] - 0.25, "A", color="#E69F00", fontsize=22, weight="bold")
         ax.yaxis.set_major_formatter(FormatStrFormatter("%.0f"))
         ax.set_xlabel("Longitude [deg E]")
         ax.set_ylabel("")

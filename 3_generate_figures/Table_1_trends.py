@@ -6,63 +6,46 @@ from __future__ import annotations
 import argparse
 
 import numpy as np
-import xarray as xr
-from scipy.stats import linregress
 
 from figure_common import load_fpca, parse_project_root_arg, paths
+from trend_common import ar1_gls_trend, format_number, seasonal_domain_series
 
 
-def seasonal_series_full_region(ds_in, months):
-    ts = ds_in["mld"].mean(dim=("long", "lat"), skipna=True)
-    sub = ts.where(ts["time"].dt.month.isin(months), drop=True)
-    if set(months) == {12, 1, 2}:
-        season_year = xr.where(sub["time"].dt.month == 12, sub["time"].dt.year + 1, sub["time"].dt.year)
-    else:
-        season_year = sub["time"].dt.year
-    return sub.groupby(season_year.rename("season_year")).mean("time", skipna=True)
+N_RECONSTRUCTION_MODES = 50
 
 
-def trend_stats(ds_in, months) -> tuple[float, float]:
-    ts_y = seasonal_series_full_region(ds_in, months)
-    x = ts_y["season_year"].values.astype(float)
-    y = ts_y.values
-    valid = np.isfinite(x) & np.isfinite(y)
-    if valid.sum() < 8:
-        return np.nan, np.nan
-    lr = linregress(x[valid], y[valid])
-    return float(lr.slope), float(lr.pvalue)
+def trend_stats(ds_in, months):
+    ts_y = seasonal_domain_series(ds_in, months)
+    return ar1_gls_trend(ts_y["season_year"].values.astype(float), ts_y.values)
 
 
-def fmt_number(value: float) -> str:
-    if not np.isfinite(value):
-        return "--"
-    text = f"{value:.2f}".rstrip("0").rstrip(".")
-    return "0" if text == "-0" else text
-
-
-def fmt_cell(slope: float, pvalue: float) -> str:
-    return rf"${fmt_number(slope)}$ ({fmt_number(pvalue)})"
+def fmt_cell(trend) -> str:
+    return (
+        rf"${format_number(trend.slope)}$ "
+        rf"[{format_number(trend.ci_low)}, {format_number(trend.ci_high)}] "
+        rf"({format_number(trend.pvalue)})"
+    )
 
 
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
 
-    fpca = load_fpca(args.project_root)
+    fpca = load_fpca(args.project_root, max_modes=N_RECONSTRUCTION_MODES)
     periods = {"Annual": list(range(1, 13)), "Summer": [1, 2, 3], "Winter": [7, 8, 9]}
     dataset_order = ["GLORYS", "GLORYS_CL", "CMA"]
     ds_map = {"GLORYS": fpca["GLORYS"][0], "GLORYS_CL": fpca["GLORYS_CL"][0], "CMA": fpca["CMA"][0]}
 
     rows = []
     for period_name, months in periods.items():
-        cells = [fmt_cell(*trend_stats(ds_map[dataset_name], months)) for dataset_name in dataset_order]
+        cells = [fmt_cell(trend_stats(ds_map[dataset_name], months)) for dataset_name in dataset_order]
         rows.append(f"{period_name} & " + " & ".join(cells) + r" \\")
 
     table = "\n".join(
         [
             r"\begin{table}",
             r"\centering",
-            r"\caption{Summary of MLD annual and seasonal trend slope coefficients (in $\mathrm{m\,yr^{-1}}$) with their associated $p$-value in parenthesis.}",
+            r"\caption{Summary of MLD annual and seasonal trend slope coefficients (in $\mathrm{m\,yr^{-1}}$), 95\% confidence intervals, and AR(1)-adjusted $p$-values in parenthesis.}",
             r"\label{table2}",
             r"\small",
             r"\begin{tabular}{c|c|c|c}",
