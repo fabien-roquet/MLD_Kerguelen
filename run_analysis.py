@@ -176,7 +176,15 @@ def main() -> None:
             run_command([sys.executable, str(TREND_TABLE_SCRIPT), "--project-root", str(PROJECT_ROOT)])
 
     if "compare" in stages:
-        run_command([sys.executable, str(PROJECT_ROOT / "scripts" / "compare_processed_reference.py")])
+        generated_dir = PROJECT_ROOT / "processed"
+        reference_dir = PROJECT_ROOT / "processed_reference"
+        if reference_dir.exists():
+            run_command([sys.executable, str(PROJECT_ROOT / "scripts" / "compare_processed_reference.py")])
+        else:
+            if not generated_dir.exists():
+                raise FileNotFoundError(f"Generated processed directory not found: {generated_dir}")
+            shutil.copytree(generated_dir, reference_dir)
+            print(f"Created initial reference snapshot at {reference_dir} from {generated_dir}")
 
 
 if __name__ == "__main__":
