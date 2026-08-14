@@ -25,7 +25,7 @@ def main() -> None:
     ds_map = {"GLORYS": fpca["GLORYS"][0], "GLORYS_CL": fpca["GLORYS_CL"][0], "CMA": fpca["CMA"][0]}
     colors = {"GLORYS": G_COLOR, "GLORYS_CL": CL_COLOR, "CMA": CMA_COLOR}
 
-    fig, axes = plt.subplots(3, 1, figsize=(15, 15), sharex=True, tight_layout=True, gridspec_kw={"hspace": 0.05})
+    fig, axes = plt.subplots(3, 1, figsize=(20, 22), sharex=True, tight_layout=True, gridspec_kw={"hspace": 0.15})
     for ax, (sname, months), letter in zip(axes, season_months.items(), ["a", "b", "c"]):
         for name, ds_in in ds_map.items():
             ts_y = seasonal_domain_series(ds_in, months)

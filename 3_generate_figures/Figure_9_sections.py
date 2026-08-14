@@ -150,7 +150,7 @@ def main() -> None:
     ax.set_ylim(depth_max, 0)
     ax.set_xlim(section_lon.min(), section_lon.max())
     ax.set_ylabel("Depth [m]")
-    ax.set_xlabel("Longitude [deg E]")
+    ax.set_xlabel("Longitude [˚E]")
     ax.set_title("")
     ax.legend()
     fig.colorbar(pcm, cax=cax, label=r"$\theta \; [^\circ C]$")

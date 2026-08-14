@@ -70,14 +70,18 @@ def main() -> None:
     ax4 = fig.add_subplot(gs[1, :])
 
     map_items = [
-        (ax1, ds_G, qe_plot_g, "(a) GLORYS", "Latitude [deg N]"),
+        (ax1, ds_G, qe_plot_g, "(a) GLORYS", "Latitude [˚N]"),
         (ax2, ds_CL, qe_plot_cl, r"(b) GLORYS$_{\mathregular{CL}}$", ""),
         (ax3, ds_CMA, qe_plot_cma, "(c) CMA", ""),
     ]
     for ax, ds_i, qe_i, panel_txt, ylab in map_items:
         pcm = ax.pcolormesh(ds_i["long"], ds_i["lat"], qe_i.transpose("lat", "long"), shading="auto", cmap=cmo.amp, vmin=0, vmax=80)
         add_common_map_layers(ax, elevation, ds_front)
-        ax.set_xlabel("Longitude [deg E]")
+        ax.plot(ds_front.LonSAF.where(ds_front.LatSAF > -50), ds_front.LatSAF.where(ds_front.LatSAF > -50), c="k", lw=2.5, zorder=5)
+        ax.plot(ds_front.LonPF, ds_front.LatPF, c="k", lw=2.5, zorder=5)
+        ax.plot(ds_front.LonSACCF, ds_front.LatSACCF, c="k", lw=2.5, zorder=5)
+        ax.tick_params(axis="x", pad=10)
+        ax.set_xlabel("Longitude [˚E]")
         ax.set_ylabel(ylab)
         ax.text(
             0.01,

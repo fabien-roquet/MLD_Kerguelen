@@ -190,8 +190,6 @@ def main() -> None:
     )
     ax_map.plot([SECTION_START[0], SECTION_END[0]], [SECTION_START[1], SECTION_END[1]], color="black", lw=5, zorder=6)
     ax_map.plot([SECTION_START[0], SECTION_END[0]], [SECTION_START[1], SECTION_END[1]], color="#FFBE0B", lw=3, zorder=6)
-    
-
     ax_map.annotate(
         "A",
         xy=(SECTION_START[0] - 0.7, SECTION_START[1] - 0.5),

@@ -45,25 +45,31 @@ def main() -> None:
     for ax, img in zip(axs, [ds1.mld, ds2.mld, ds3.mld]):
         pcm = img.plot(x="longitude", cmap=cmo.deep, add_colorbar=False, ax=ax, vmin=0, vmax=200)
         add_common_map_layers(ax, elevation, ds_front, front_color="white")
-        ax.plot(
-            [SECTION_START[0], SECTION_END[0]],
-            [SECTION_START[1], SECTION_END[1]],
-            color="#E69F00",
-            lw=2.2,
-            solid_capstyle="round",
-        )
-        ax.text(SECTION_START[0] - 0.45, SECTION_START[1] - 0.25, "A", color="#E69F00", fontsize=22, weight="bold")
+        ax.plot([SECTION_START[0], SECTION_END[0]], [SECTION_START[1], SECTION_END[1]], color="black", lw=5, zorder=6)
+        ax.plot([SECTION_START[0], SECTION_END[0]], [SECTION_START[1], SECTION_END[1]], color="#FFBE0B", lw=3, zorder=6)
+        ax.annotate(
+            "A",
+            xy=(SECTION_START[0] - 0.7, SECTION_START[1] - 0.5),
+            weight="bold",
+            xytext=(0, 4),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            color="#FFBE0B",
+            bbox={"facecolor": "white", "edgecolor": "black", "boxstyle": "round,pad=0.2"},
+            )
         ax.yaxis.set_major_formatter(FormatStrFormatter("%.0f"))
-        ax.set_xlabel("Longitude [deg E]")
+        ax.set_xlabel("Longitude [˚E]")
         ax.set_ylabel("")
 
-    axs[0].set_ylabel("Latitude [deg N]")
+    axs[0].set_ylabel("Latitude [˚N]")
     pos = axs[2].get_position()
     cax = fig.add_axes([pos.x1 + 0.01, pos.y0, 0.015, pos.height])
     fig.colorbar(pcm, cax=cax, label="MLD [m]")
 
     labels = [("(a)", "CMA"), ("(b)", "GLORYS"), ("(c)", r"GLORYS$_{\mathregular{CL}}$")]
     for ax, (letter, label) in zip(axs, labels):
+        ax.tick_params(axis="x",pad=10)
         ax.text(0.01, 0.93, letter, transform=ax.transAxes, size=25, color="white", weight="bold")
         ax.text(0.11, 0.93, label, transform=ax.transAxes, size=25, color="white", weight="bold")
 

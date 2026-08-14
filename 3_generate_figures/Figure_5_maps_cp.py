@@ -30,9 +30,9 @@ def main() -> None:
             vmin=-vlim,
             vmax=vlim,
         )
-        add_common_map_layers(ax, elevation, ds_front, front_color="white")
-        ax.set_xlabel("Longitude [deg E]" if is_bottom else "")
-        ax.set_ylabel("Latitude [deg N]" if is_left else "")
+        add_common_map_layers(ax, elevation, ds_front, front_color="black")
+        ax.set_xlabel("Longitude [˚E]" if is_bottom else "")
+        ax.set_ylabel("Latitude [˚N]" if is_left else "")
         ax.tick_params(axis="x", labelbottom=is_bottom)
         ax.tick_params(axis="y", labelleft=is_left)
         return im
@@ -54,6 +54,7 @@ def main() -> None:
 
     panel_dataset_labels = [label for label, _ in datasets] * 2
     for i, ax_i in enumerate(axes_top + axes_bottom):
+        ax_i.tick_params(axis="x",pad=10)
         label = r"GLORYS$_{\mathregular{CL}}$" if panel_dataset_labels[i] == "GLORYS_CL" else panel_dataset_labels[i]
         ax_i.text(
             0.01,

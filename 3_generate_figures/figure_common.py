@@ -79,10 +79,10 @@ def topo_fronts(project_root: str | Path = PROJECT_ROOT) -> tuple[xr.DataArray, 
 
 def add_common_map_layers(ax: plt.Axes, elevation: xr.DataArray, fronts: xr.Dataset, front_color: str = "k") -> None:
     (elevation / elevation).where(elevation > 0).plot(add_colorbar=False, cmap="gist_yarg", ax=ax)
-    cs = (-elevation).plot.contour(levels=(500, 1000, 2000), colors=["black"], linewidths=0.7, ax=ax)
-    ax.plot(fronts.LonSAF.where(fronts.LatSAF > -50), fronts.LatSAF.where(fronts.LatSAF > -50), c=front_color, lw=1)
-    ax.plot(fronts.LonPF, fronts.LatPF, c=front_color, lw=1)
-    ax.plot(fronts.LonSACCF, fronts.LatSACCF, c=front_color, lw=1)
+    cs = (-elevation).plot.contour(levels=(500, 1000, 2000), colors=["black"], linewidths=1, ax=ax)
+    ax.plot(fronts.LonSAF.where(fronts.LatSAF > -50), fronts.LatSAF.where(fronts.LatSAF > -50), c=front_color, lw=2.5)
+    ax.plot(fronts.LonPF, fronts.LatPF, c=front_color, lw=2.5)
+    ax.plot(fronts.LonSACCF, fronts.LatSACCF, c=front_color, lw=2.5)
     ax.clabel(cs, inline=True, fmt="%1.0f", fontsize=10)
     ax.set_xticks([60, 65, 70, 75, 80])
     ax.set_yticks([-60, -55, -50, -45, -40])

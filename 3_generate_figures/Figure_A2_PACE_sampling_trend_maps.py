@@ -80,8 +80,8 @@ def main() -> None:
             vmax=2,
         )
         add_common_map_layers(ax, elevation, ds_front)
-        ax.set_xlabel("Longitude [deg E]")
-        ax.set_ylabel("Latitude [deg N]" if i == 0 else "")
+        ax.set_xlabel("Longitude [˚E]")
+        ax.set_ylabel("Latitude [˚N]" if i == 0 else "")
 
         stat = summary.loc[summary["percentage"].eq(percentage)]
         slope_text = ""

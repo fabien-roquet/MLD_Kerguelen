@@ -38,6 +38,7 @@ def main() -> None:
         sharey=True,
         constrained_layout=True,
         squeeze=False,
+        gridspec_kw={"hspace": 0.05}
     )
     cbar_ticks_uniform = np.arange(-2.0, 2.5, 1)
     for i, period_name in enumerate(periods.keys()):
@@ -50,8 +51,8 @@ def main() -> None:
             lon2d, lat2d = np.meshgrid(slope["long"].values, slope["lat"].values)
             ax.scatter(lon2d[significant], lat2d[significant], s=3, c="k", marker=".", alpha=0.65, linewidths=0)
             add_common_map_layers(ax, elevation, ds_front)
-            ax.set_xlabel("Longitude [deg E]" if i == len(periods) - 1 else "")
-            ax.set_ylabel("Latitude [deg N]" if j == 0 else "")
+            ax.set_xlabel("Longitude [˚E]" if i == len(periods) - 1 else "")
+            ax.set_ylabel("Latitude [˚N]" if j == 0 else "")
         cbar = fig.colorbar(im, ax=axes[i, :], orientation="vertical", shrink=0.95, pad=0.02, ticks=cbar_ticks_uniform)
         cbar.set_label("MLD trend [m yr$^{-1}$]")
 
@@ -60,6 +61,7 @@ def main() -> None:
         dataset_idx = i % len(dataset_order)
         d_name = dataset_order[dataset_idx]
         label = r"GLORYS$_{\mathregular{CL}}$" if d_name == "GLORYS_CL" else d_name
+        ax_i.tick_params(axis='x', pad=10)
         ax_i.text(
             0.01,
             0.98,
