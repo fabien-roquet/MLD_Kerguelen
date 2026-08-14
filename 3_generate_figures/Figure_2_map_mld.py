@@ -25,7 +25,18 @@ def main() -> None:
     ds_G = open_gridded(args.project_root, "GLORYS_gridded.nc")
     ds_CL = open_gridded(args.project_root, "GLORYS_CL_gridded.nc")
 
-    mask = kerguelen_mask(ds_G)
+    if not (
+        ds_CMA.longitude.identical(ds_G.longitude)
+        and ds_CMA.latitude.identical(ds_G.latitude)
+        and ds_CMA.longitude.identical(ds_CL.longitude)
+        and ds_CMA.latitude.identical(ds_CL.latitude)
+    ):
+        raise ValueError(
+            "Figure 2 requires CMA/GLORYS/GLORYS_CL on the same observation grid. "
+            "Run the data stage to regenerate GLORYS products on the observation grid."
+        )
+
+    mask = kerguelen_mask(ds_CMA)
     ds1 = ds_CMA.where(~mask).mean("time")
     ds2 = ds_G.where(~mask).mean("time")
     ds3 = ds_CL.where(~mask).mean("time")

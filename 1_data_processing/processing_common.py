@@ -55,7 +55,7 @@ def make_ds_cut(
     nb_bins: int = NB_BINS,
     start_date: pd.Timestamp | None = None,
     end_date: pd.Timestamp = END_DATE,
-    freq: str = "M",
+    freq: str = "ME",
 ) -> tuple[xr.Dataset, pd.DataFrame]:
     """Bin point MLD values onto the monthly 39 x 39 grid used in the notebooks."""
     lon_col = "longitude"
@@ -133,6 +133,25 @@ def write_anomaly_products(ds: xr.Dataset, mask: xr.DataArray, anom_file: Path, 
     print(f"Wrote {anom_file}")
     print(f"Wrote {clim_file}")
     return anom
+
+
+def same_grid_as_observations(
+    ds: xr.Dataset,
+    obs_grid: xr.Dataset,
+    lon_name: str = "longitude",
+    lat_name: str = "latitude",
+    time_name: str = "time",
+) -> bool:
+    for coord in (lon_name, lat_name, time_name):
+        if coord not in ds.coords or coord not in obs_grid.coords:
+            return False
+        if ds.sizes.get(coord) != obs_grid.sizes.get(coord):
+            return False
+
+    lon_ok = np.allclose(ds[lon_name].values, obs_grid[lon_name].values, rtol=0.0, atol=1e-10)
+    lat_ok = np.allclose(ds[lat_name].values, obs_grid[lat_name].values, rtol=0.0, atol=1e-10)
+    time_ok = np.array_equal(ds[time_name].values, obs_grid[time_name].values)
+    return bool(lon_ok and lat_ok and time_ok)
 
 
 def build_observation_grid(project_root: str | Path = PROJECT_ROOT, nb_bins: int = NB_BINS) -> xr.Dataset:
@@ -225,4 +244,5 @@ def grid_glorys_mld(mld: xr.DataArray, obs_grid: xr.Dataset, nb_bins: int = NB_B
         time=obs_grid.time,
         method="nearest",
     )
-    return ds_glorys.sel(time=slice(obs_grid.time.min(), obs_grid.time.max()))
+    # Ensure output coordinates exactly match the observation-based analysis grid.
+    return ds_glorys.assign_coords(latitude=obs_grid.latitude, longitude=obs_grid.longitude, time=obs_grid.time)
