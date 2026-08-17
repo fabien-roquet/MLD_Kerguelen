@@ -6,19 +6,30 @@ This file collects the main numbers currently used to update `latex/manuscript_d
 
 | Quantity | Value | Source |
 |---|---:|---|
-| CMA source MLD profiles | 97,815 | `data/CORA_MEOP_ARGO_2026.nc` |
+| CMA source MLD profiles | 97,772 | finite `mld` values with `time <= 2023-12-31` in `data/CORA_MEOP_ARGO_2026.nc` |
 | Time span | Jan 2007-Dec 2023 | source data and processed grids |
 | Monthly fields | 204 | `processed/1_gridded_data/*.nc` |
 | Horizontal grid | 39 x 39 | processing scripts |
 | Grid cells | 1,521 | processing scripts |
 | Total monthly grid-cell slots | 310,284 | 204 x 39 x 39 |
 | Kerguelen island mask | 20 cells | lon 68.25-70.75 E, lat 50-48 S |
-| CMA finite monthly grid values | 27,149 | `CMA_gridded.nc` |
-| CMA gridded coverage | 8.75% | 27,149 / 310,284 |
+| CMA finite monthly grid values | 27,148 | `CMA_gridded.nc` |
+| CMA gridded coverage | 8.75% | 27,148 / 310,284 |
 | CMA R-input non-missing values | 31,229 | includes island-mask zeros |
 | CMA R-input coverage | 10.06% | 31,229 / 310,284 |
 
-The merged CMA file does not contain a source/platform label, so the MEOP/CORA-Argo split cannot be recomputed directly from this reduced input file.
+For Figure 1, source bars are now reconstructed safely from the de-duplicated combined CMA file by exact matching on `(time, longitude, latitude, mld)` against the MEOP, CORA, and ARGO source files. This avoids double-counting while keeping the bars on the same profile universe as the map.
+
+Validated Figure 1 counts after the Kerguelen mask:
+
+| Quantity | Value |
+|---|---:|
+| Combined profiles on map | 96,216 |
+| MEOP profiles in bars | 76,558 |
+| CORA+ARGO profiles in bars | 19,658 |
+| Occupied monthly CMA cells | 27,148 |
+
+The de-duplicated source split in the combined file is 78,108 MEOP profiles and 19,664 CORA+ARGO profiles before the Kerguelen mask. The standalone CORA, MEOP, and ARGO files sum to 97,783 finite profiles over the period, but 11 CORA records are not present in the merged CMA file.
 
 Profile counts by year in `data/CORA_MEOP_ARGO_2026.nc`:
 
@@ -69,7 +80,7 @@ Mean and standard deviation are over all finite monthly grid cells.
 |---|---:|---:|---:|
 | GLORYS | 307,470 | 98.45 | 60.43 |
 | GLORYS_CL | 27,339 | 102.61 | 57.03 |
-| CMA | 27,149 | 109.21 | 68.94 |
+| CMA | 27,148 | 109.21 | 68.94 |
 
 Pointwise GLORYS-CMA difference at observed monthly grid cells:
 

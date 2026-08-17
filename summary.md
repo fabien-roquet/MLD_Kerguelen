@@ -14,8 +14,9 @@ This repository reconstructs monthly mixed-layer-depth (MLD) anomalies around th
 ## MLD and Gridding
 
 - Observational product: merged CORA, MEOP, and additional Argo profiles, referred to as CMA.
-- Current source file contains `97815` finite MLD profile values.
+- Current source file contains `97772` finite MLD profile values with `time <= 2023-12-31`.
 - CMA profile MLDs are binned by month, longitude bin, and latitude bin using mean MLD inside each bin.
+- Figure 1 uses the de-duplicated combined CMA profile set for both the map and the source bars. MEOP and CORA+ARGO bars are assigned by exact matching each combined profile on `(time, longitude, latitude, mld)` against the source files, which avoids double-counting across datasets.
 - MLD is defined consistently for every product with a density threshold relative to 10 m:
   - `Delta sigma0 = 0.03 kg m-3`.
   - This applies to CMA profile MLDs, full GLORYS, co-located GLORYS (`GLORYS_CL`), the GLORYS section product used for Figure 9, and KERFIX.
@@ -62,9 +63,11 @@ All values below are computed from the current `processed/` outputs.
 |---|---:|---:|---:|
 | GLORYS | 307470 | 98.45 | 60.43 |
 | GLORYS_CL | 27339 | 102.61 | 57.03 |
-| CMA | 27149 | 109.21 | 68.94 |
+| CMA | 27148 | 109.21 | 68.94 |
 
-The CMA gridded observational coverage is `27149 / 310284 = 8.75%`. The R anomaly input for CMA has 31229 non-missing values (`10.06%`) because the Kerguelen island mask is encoded as zero to preserve the regular grid shape.
+The CMA gridded observational coverage is `27148 / 310284 = 8.75%`. The R anomaly input for CMA has 31229 non-missing values (`10.06%`) because the Kerguelen island mask is encoded as zero to preserve the regular grid shape.
+
+Validated Figure 1 counts after the Kerguelen mask are `96216` combined profiles on the map, split into `76558` MEOP profiles and `19658` CORA+ARGO profiles in the bars. Those bar counts now sum exactly to the map total because they are derived from the same de-duplicated combined dataset.
 
 Spatial climatology correlations:
 
