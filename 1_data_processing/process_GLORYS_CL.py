@@ -64,11 +64,13 @@ def process_glorys_cl(
     # GLORYS_CL.ipynb: bin/interpolate to the observation grid, then keep only observed cells.
     ds_cl = grid_glorys_mld(mld, ds_obs_grid, nb_bins=nb_bins)
     ds_cl["mld"] = ds_cl.mld.where(~np.isnan(ds_obs_grid.mld))
+    # Keep gridded-product masking consistent with CMA by removing Kerguelen island cells.
+    mask = kerguelen_mask(ds_cl)
+    ds_cl = ds_cl.where(~mask)
     ds_cl.to_netcdf(gridded_file)
     print(f"Wrote {gridded_file}")
 
     # GLORYS_CL.ipynb: mask Kerguelen, remove seasonal cycle, write R input.
-    mask = kerguelen_mask(ds_cl)
     ds_anom = write_anomaly_products(ds_cl, mask, anom_file, clim_file)
     write_r_input(ds_anom, r_file)
 

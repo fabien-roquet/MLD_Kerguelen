@@ -9,13 +9,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, open_gridded, parse_project_root_arg, paths, save_figure
+from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, apply_consistent_plot_style, open_gridded, parse_project_root_arg, paths, save_figure
 
 
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     ds_CMA = open_gridded(args.project_root, "CMA_anom.nc")
     ds_CMA_clim = open_gridded(args.project_root, "CMA_clim.nc")

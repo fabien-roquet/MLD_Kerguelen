@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
-from figure_common import cmo, load_fpca, parse_project_root_arg, paths, require_file, save_figure
+from figure_common import apply_consistent_plot_style, cmo, load_fpca, parse_project_root_arg, paths, require_file, save_figure
 
 
 SECTION_START = (72.0, -52.5)
@@ -65,7 +65,7 @@ def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     parser.add_argument("--n-points", type=int, default=240, help="Number of points along the plotted section.")
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 15})
+    apply_consistent_plot_style()
 
     project_paths = paths(args.project_root)
     section_file = require_file(

@@ -43,12 +43,15 @@ def process_glorys(
     if not force and gridded_file.exists() and anom_file.exists() and clim_file.exists():
         with xr.open_dataset(gridded_file) as ds_existing:
             grid_ok = same_grid_as_observations(ds_existing, ds_obs_grid)
-        if grid_ok:
+            mask_applied = bool(ds_existing["mld"].where(kerguelen_mask(ds_existing)).isnull().all())
+        if grid_ok and mask_applied:
             with xr.open_dataset(anom_file) as ds_anom:
                 write_r_input(ds_anom, r_file)
             print("Reused existing GLORYS NetCDF products.")
             return
-        print("Existing GLORYS grid differs from observation grid; recomputing GLORYS products.")
+        print(
+            "Existing GLORYS outputs are outdated (grid mismatch or missing Kerguelen mask); recomputing GLORYS products."
+        )
 
     # GLORYS.ipynb: open GLORYS and select the observation domain.
     ds_g = xr.open_dataset(paths.data / "GLORYS_2026.nc")
@@ -60,13 +63,14 @@ def process_glorys(
     # GLORYS.ipynb: density-threshold MLD for the full GLORYS field.
     mld = compute_glorys_mld(ds_g, density_threshold=0.03, block_size=block_size)
 
-    # GLORYS.ipynb: bin and interpolate GLORYS onto the observation grid.
+    # GLORYS.ipynb: bin/interpolate onto observation grid, then apply Kerguelen mask.
     ds_g = grid_glorys_mld(mld, ds_obs_grid, nb_bins=nb_bins)
+    mask = kerguelen_mask(ds_g)
+    ds_g = ds_g.where(~mask)
     ds_g.to_netcdf(gridded_file)
     print(f"Wrote {gridded_file}")
 
-    # GLORYS.ipynb: mask Kerguelen, remove seasonal cycle, write R input.
-    mask = kerguelen_mask(ds_g)
+    # GLORYS.ipynb: remove seasonal cycle from masked product and write R input.
     ds_anom = write_anomaly_products(ds_g, mask, anom_file, clim_file)
     write_r_input(ds_anom, r_file)
 

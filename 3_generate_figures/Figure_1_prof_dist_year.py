@@ -13,7 +13,7 @@ import pandas as pd
 import xarray as xr
 from pandas.tseries.offsets import DateOffset
 
-from figure_common import cmo, parse_project_root_arg, paths, save_figure, topo_fronts, kerguelen_mask
+from figure_common import apply_consistent_plot_style, cmo, kerguelen_mask, parse_project_root_arg, paths, save_figure, topo_fronts
 
 
 KERFIX_LON = 68.4167
@@ -165,7 +165,7 @@ def yearly_monthly_counts(da_count: xr.DataArray) -> tuple[xr.DataArray, xr.Data
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     p = paths(args.project_root)
     elevation, ds_front = topo_fronts(args.project_root)
@@ -205,6 +205,9 @@ def main() -> None:
     hist_meop_y = hist_meop_y.reindex(year=all_years, fill_value=0)
     hist_other_m = hist_other_m.reindex(month=months_idx, fill_value=0)
     hist_meop_m = hist_meop_m.reindex(month=months_idx, fill_value=0)
+
+    hist_total_y = hist_other_y + hist_meop_y
+    print(f"Average number of profiles per year and std: {int(hist_total_y.mean().item())} ± {int(hist_total_y.std().item())}")
 
     fig = plt.figure(figsize=(25, 10))
     gs = fig.add_gridspec(2, 2, width_ratios=[1.2, 1], height_ratios=[1, 1], wspace=0.05, hspace=0.2)

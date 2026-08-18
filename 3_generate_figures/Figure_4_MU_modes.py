@@ -8,13 +8,13 @@ import argparse
 import matplotlib.dates as mdates
 import matplotlib.pyplot as plt
 
-from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, load_fpca, parse_project_root_arg, paths, save_figure
+from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, apply_consistent_plot_style, load_fpca, parse_project_root_arg, paths, save_figure
 
 
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     fpca = load_fpca(args.project_root)
     lambda_map = {"GLORYS": fpca["GLORYS"][6], "GLORYS_CL": fpca["GLORYS_CL"][6], "CMA": fpca["CMA"][6]}

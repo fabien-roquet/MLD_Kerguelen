@@ -19,7 +19,37 @@ KERGUELEN_BOX = (68.25, 70.75, -50.0, -48.0)
 G_COLOR = "#0D160B"
 CMA_COLOR = "#008DD5"
 CL_COLOR = "#CB152B"
+BASE_FONT_SIZE = 20
 LEGEND_FS = 15
+AXIS_LABEL_FS = 20
+TICK_LABEL_FS = 16
+PANEL_LABEL_FS = 20
+COLORBAR_LABEL_FS = 18
+
+
+def apply_consistent_plot_style(
+    base_font_size: int = BASE_FONT_SIZE,
+    legend_font_size: int = LEGEND_FS,
+    tick_font_size: int = TICK_LABEL_FS,
+    label_font_size: int = AXIS_LABEL_FS,
+    title_font_size: int = PANEL_LABEL_FS,
+) -> None:
+    """Apply a single manuscript-style baseline for all plots and allow easy rollback."""
+    plt.rcParams.update(
+        {
+            "font.size": base_font_size,
+            "axes.titlesize": title_font_size,
+            "axes.labelsize": label_font_size,
+            "axes.titleweight": "bold",
+            "xtick.labelsize": tick_font_size,
+            "ytick.labelsize": tick_font_size,
+            "legend.fontsize": legend_font_size,
+            "figure.titlesize": title_font_size,
+            "axes.labelpad": 8,
+            "xtick.major.pad": 6,
+            "ytick.major.pad": 6,
+        }
+    )
 
 
 try:

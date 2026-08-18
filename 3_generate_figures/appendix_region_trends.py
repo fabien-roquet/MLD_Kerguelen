@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import xarray as xr
 
-from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, load_fpca, paths, save_figure, topo_fronts
+from figure_common import CL_COLOR, CMA_COLOR, G_COLOR, LEGEND_FS, apply_consistent_plot_style, load_fpca, paths, save_figure, topo_fronts
 from trend_common import ar1_gls_trend, format_number, format_trend_ci, seasonal_domain_series
 
 
@@ -68,7 +68,7 @@ def regional_masks(ds_glorys: xr.Dataset, fronts: xr.Dataset) -> dict[str, tuple
 
 
 def plot_region_trends(project_root: str | Path, mask_func: MaskFunction, mask_label: str, output_name: str) -> None:
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     fpca = load_fpca(project_root, max_modes=N_RECONSTRUCTION_MODES)
     _, fronts = topo_fronts(project_root)

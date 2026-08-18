@@ -16,6 +16,7 @@ from figure_common import (
     CMA_COLOR,
     G_COLOR,
     align_original_anomaly,
+    apply_consistent_plot_style,
     load_fpca,
     parse_project_root_arg,
     paths,
@@ -125,7 +126,7 @@ def write_pace_parameter_table(out_file: Path, fve_at_50: dict[str, float], rmse
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 15})
+    apply_consistent_plot_style()
 
     lambdas = read_lambdas(args.project_root)
     fpca_50 = load_fpca(args.project_root, max_modes=N_RECONSTRUCTION_MODES)
@@ -148,13 +149,13 @@ def main() -> None:
         modes = np.arange(1, len(fve) + 1)
         ax_var.plot(modes, 100 * fve.to_numpy(), color=color, lw=2, label=label)
     ax_var.axvline(N_RECONSTRUCTION_MODES, color="0.25", lw=1.2, linestyle="--")
-    ax_var.set_xlabel("Retained modes K")
+    ax_var.set_xlabel("Number of retained modes K")
     ax_var.set_ylabel("Cumulative explained variance [%]")
     ax_var.set_xlim(1, max(K_VALUES))
     ax_var.set_ylim(0, 101)
     ax_var.grid(alpha=0.3)
     ax_var.text(0.02, 0.96, "(a)", transform=ax_var.transAxes, ha="left", va="top", fontweight="bold")
-    ax_var.legend(loc="lower right", fontsize=11)
+    ax_var.legend(loc="lower right", fontsize=15)
 
     rmse_at_50 = {}
     for dataset_name, (label, _, color) in DATASET_META.items():
@@ -162,12 +163,12 @@ def main() -> None:
         rmse_at_50[dataset_name] = float(sub.loc[sub["K"].eq(N_RECONSTRUCTION_MODES), "rmse"].iloc[0])
         ax_rmse.plot(sub["K"], sub["rmse"], marker="o", color=color, lw=2, label=label)
     ax_rmse.axvline(N_RECONSTRUCTION_MODES, color="0.25", lw=1.2, linestyle="--")
-    ax_rmse.set_xlabel("Retained modes K")
+    ax_rmse.set_xlabel("Number of retained modes K")
     ax_rmse.set_ylabel("Domain RMSE [m]")
     ax_rmse.set_xlim(1, max(K_VALUES))
     ax_rmse.grid(alpha=0.3)
     ax_rmse.text(0.02, 0.96, "(b)", transform=ax_rmse.transAxes, ha="left", va="top", fontweight="bold")
-    ax_rmse.legend(loc="best", fontsize=11)
+    ax_rmse.legend(loc="best", fontsize=15)
 
     out_dir = paths(args.project_root)["figures"]
     write_pace_parameter_table(out_dir / "Table_S2_PACE_parameters.tex", fve_at_50, rmse_at_50)

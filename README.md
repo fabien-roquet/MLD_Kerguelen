@@ -26,6 +26,9 @@ profiles used for Figure 10. Park et al. (1998) reported KERFIX values with a
 Expected local files:
 
 - `data/CORA_MEOP_ARGO_2026.nc`
+- `data/MEOP_2026.nc` for Figure 1
+- `data/CORA_2026.nc` for Figure 1
+- `data/ARGO_2026.nc` for Figure 1
 - `data/GLORYS_2026.nc`
 - `data/GEBCO_ker_large.nc`
 - `data/fronts_62985.nc`
@@ -67,6 +70,13 @@ Run the whole modular pipeline:
 uv run python run_analysis.py
 ```
 
+By default, the figure stage runs Figure 1, Figures 2-10, and supplementary
+Figures S1-S2.
+Appendix Figures A1-A5 are opt-in because they depend on sampling outputs.
+
+Each `run_analysis.py` launch prints an estimated total runtime at startup
+and the actual wall-clock runtime at the end.
+
 Run only one stage:
 
 ```bash
@@ -78,6 +88,14 @@ uv run python run_analysis.py --stage figures --figures 2 3 4
 
 When Figure 7 is included in the figure stage, `run_analysis.py` also writes
 `processed/3_figures/Table_1_trends.tex` from the same trend calculation.
+The figure stage also refreshes `statistics.md` and `summary.md` from the
+current outputs.
+
+Refresh statistics files without rerunning figures:
+
+```bash
+uv run python scripts/update_statistics_markdown.py
+```
 
 Appendix Figures A1-A2 use the GLORYS MLD-anomaly random space-time sampling
 PACE sensitivity experiment. The sampling stage defaults to 30 pseudo-random
@@ -121,4 +139,4 @@ Rscript 2_compute_fPCA_R/script_PCA_GLORYS_random_sampling_2026.R
 uv run python scripts/compare_processed_reference.py
 ```
 
-Figure 1 is represented by a script, but it requires source files that are not part of the reduced two-input workflow. Figure 6 is generated only as `Figure_6_RMSE_mask.png`; the unmasked RMSE figure is obsolete.
+Figure 6 is generated only as `Figure_6_RMSE_mask.png`; the unmasked RMSE figure is obsolete.

@@ -8,7 +8,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-from figure_common import add_common_map_layers, cmo, load_fpca, parse_project_root_arg, paths, save_figure, topo_fronts
+from figure_common import add_common_map_layers, apply_consistent_plot_style, cmo, load_fpca, parse_project_root_arg, paths, save_figure, topo_fronts
 from trend_common import seasonal_trend_map
 
 
@@ -18,7 +18,7 @@ N_RECONSTRUCTION_MODES = 50
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     elevation, ds_front = topo_fronts(args.project_root)
     fpca = load_fpca(args.project_root, max_modes=N_RECONSTRUCTION_MODES)
