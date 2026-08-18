@@ -63,7 +63,7 @@ def write_regional_table(
     dataset_labels = {"GLORYS": "GLORYS", "GLORYS_CL": r"$\textrm{GLORYS}_{\textrm{CL}}$", "CMA": "CMA"}
 
     rows = []
-    for region_code, (region_name, region_mask) in masks.items():
+    for region_code, (_region_name, region_mask) in masks.items():
         region_mask = region_mask.fillna(False)
         n_cells = int(region_mask.sum())
         for dataset_name in dataset_order:
@@ -75,25 +75,25 @@ def write_regional_table(
                 for tr in trends
             ]
             rows.append(
-                f"{region_code} & {region_name} & {dataset_labels[dataset_name]} & {n_cells} & "
+                f"{region_code} & {dataset_labels[dataset_name]} & {n_cells} & "
                 f"{format_number(rmse_value)} & " + " & ".join(trend_cells) + r" \\"
             )
 
     table = "\n".join(
         [
-            r"\begin{table}",
+            r"\begin{sidewaystable}",
             r"\centering",
             r"\caption{Regional reconstruction skill and AR(1)-adjusted trend estimates. RMSE is evaluated on the common co-located sampling mask. Trend slopes are in $\mathrm{m\,yr^{-1}}$ and are reported as slope [95\% CI] with the AR(1)-adjusted $p$-value in parenthesis.}",
             r"\label{tableS1}",
             r"\small",
-            r"\begin{tabular}{c|l|c|c|c|c|c|c}",
+            r"\begin{tabular}{clccccc}",
             r"\hline",
-            r"Region & Description & Dataset & Cells & RMSE & Annual & Summer & Winter \\",
+            r"Region & Dataset & Cells & RMSE & Annual & Summer & Winter \\",
             r"\hline",
             *rows,
             r"\hline",
             r"\end{tabular}",
-            r"\end{table}",
+            r"\end{sidewaystable}",
             "",
         ]
     )
