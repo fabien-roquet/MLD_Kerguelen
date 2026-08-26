@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from figure_common import add_common_map_layers, cmo, parse_project_root_arg, paths, require_file, topo_fronts
+from figure_common import add_common_map_layers, apply_consistent_plot_style, cmo, parse_project_root_arg, paths, require_file, topo_fronts
 
 
 MAP_PERCENTAGES = [5, 10, 20]
@@ -37,7 +37,7 @@ def format_slope(mean: float, std: float) -> str:
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 16})
+    apply_consistent_plot_style()
 
     base_dir = sampling_dir(args.project_root)
     maps_file = require_file(
@@ -80,8 +80,8 @@ def main() -> None:
             vmax=2,
         )
         add_common_map_layers(ax, elevation, ds_front)
-        ax.set_xlabel("Longitude [deg E]")
-        ax.set_ylabel("Latitude [deg N]" if i == 0 else "")
+        ax.set_xlabel("Longitude [˚E]")
+        ax.set_ylabel("Latitude [˚N]" if i == 0 else "")
 
         stat = summary.loc[summary["percentage"].eq(percentage)]
         slope_text = ""
@@ -95,7 +95,7 @@ def main() -> None:
             transform=ax.transAxes,
             ha="left",
             va="top",
-            fontsize=15,
+            fontsize=20,
             fontweight="bold",
             bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2.5},
         )

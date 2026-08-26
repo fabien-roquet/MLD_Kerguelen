@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from figure_common import G_COLOR, LEGEND_FS, parse_project_root_arg, paths, require_file, save_figure
+from figure_common import G_COLOR, LEGEND_FS, apply_consistent_plot_style, parse_project_root_arg, paths, require_file, save_figure
 from trend_common import ar1_gls_trend
 
 
@@ -78,7 +78,7 @@ def write_latex_table(summary: pd.DataFrame, out_file: Path) -> None:
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     base_dir = sampling_dir(args.project_root)
     series_file = require_file(

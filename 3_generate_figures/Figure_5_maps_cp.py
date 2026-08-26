@@ -7,13 +7,13 @@ import argparse
 
 import matplotlib.pyplot as plt
 
-from figure_common import add_common_map_layers, cmo, load_fpca, parse_project_root_arg, paths, save_figure, topo_fronts
+from figure_common import add_common_map_layers, apply_consistent_plot_style, cmo, load_fpca, parse_project_root_arg, paths, save_figure, topo_fronts
 
 
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     elevation, ds_front = topo_fronts(args.project_root)
     fpca = load_fpca(args.project_root)
@@ -31,8 +31,8 @@ def main() -> None:
             vmax=vlim,
         )
         add_common_map_layers(ax, elevation, ds_front, front_color="white")
-        ax.set_xlabel("Longitude [deg E]" if is_bottom else "")
-        ax.set_ylabel("Latitude [deg N]" if is_left else "")
+        ax.set_xlabel("Longitude [˚E]" if is_bottom else "")
+        ax.set_ylabel("Latitude [˚N]" if is_left else "")
         ax.tick_params(axis="x", labelbottom=is_bottom)
         ax.tick_params(axis="y", labelleft=is_left)
         return im
@@ -54,6 +54,7 @@ def main() -> None:
 
     panel_dataset_labels = [label for label, _ in datasets] * 2
     for i, ax_i in enumerate(axes_top + axes_bottom):
+        ax_i.tick_params(axis="x",pad=10)
         label = r"GLORYS$_{\mathregular{CL}}$" if panel_dataset_labels[i] == "GLORYS_CL" else panel_dataset_labels[i]
         ax_i.text(
             0.01,

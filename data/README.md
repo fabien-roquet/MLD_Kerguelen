@@ -3,6 +3,9 @@
 Expected local input files:
 
 - `CORA_MEOP_ARGO_2026.nc`
+- `MEOP_2026.nc` for Figure 1
+- `CORA_2026.nc` for Figure 1
+- `ARGO_2026.nc` for Figure 1
 - `GLORYS_2026.nc`
 - `GEBCO_ker_large.nc`
 - `fronts_62985.nc`
@@ -18,6 +21,6 @@ All derived MLD products use the common `0.03 kg m-3` density threshold relative
 to 10 m, including GLORYS, GLORYS_CL, the GLORYS section product, CMA, and
 KERFIX.
 
-Some original notebooks referenced additional raw or section-specific files. Those
-figures are kept as explicit scripts, but they are not part of the reduced
-two-input pipeline unless the extra files are added here.
+Appendix Figures A1-A5 require sampling outputs from
+`2_compute_fPCA_R/script_PCA_GLORYS_random_sampling_2026.R` before running
+their figure scripts.

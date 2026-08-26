@@ -14,6 +14,7 @@ from processing_common import (
     build_observation_grid,
     kerguelen_mask,
     project_paths,
+    same_grid_as_observations,
     write_anomaly_products,
     write_r_input,
 )
@@ -26,14 +27,18 @@ def process_cma(project_root: str | Path = PROJECT_ROOT, force: bool = False, nb
     clim_file = paths.gridded / "CMA_clim.nc"
     r_file = paths.r_input / "CMA_masked.txt"
 
-    if not force and gridded_file.exists() and anom_file.exists() and clim_file.exists():
-        ds_anom = xr.open_dataset(anom_file)
-        write_r_input(ds_anom, r_file)
-        print("Reused existing CMA NetCDF products.")
-        return
-
     # CMA.ipynb: open CORA/MEOP/ARGO observations and bin onto the 39 x 39 grid.
     ds = build_observation_grid(paths.root, nb_bins=nb_bins)
+
+    if not force and gridded_file.exists() and anom_file.exists() and clim_file.exists():
+        with xr.open_dataset(gridded_file) as ds_existing:
+            grid_ok = same_grid_as_observations(ds_existing, ds)
+        if grid_ok:
+            with xr.open_dataset(anom_file) as ds_anom:
+                write_r_input(ds_anom, r_file)
+            print("Reused existing CMA NetCDF products.")
+            return
+        print("Existing CMA grid differs from observation grid; recomputing CMA products.")
 
     # CMA.ipynb: mask the Kerguelen island box.
     mask = kerguelen_mask(ds)

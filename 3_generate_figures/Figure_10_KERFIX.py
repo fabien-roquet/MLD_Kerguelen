@@ -10,14 +10,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-from figure_common import CMA_COLOR, open_gridded, parse_project_root_arg, paths, require_file, save_figure
+from figure_common import CMA_COLOR, apply_consistent_plot_style, open_gridded, parse_project_root_arg, paths, require_file, save_figure
 from create_rec_datasets import r_analysis_df
 
 
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 20})
+    apply_consistent_plot_style()
 
     try:
         import gsw

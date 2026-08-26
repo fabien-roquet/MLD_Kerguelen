@@ -20,6 +20,7 @@ from figure_common import (
     LEGEND_FS,
     add_common_map_layers,
     align_original_anomaly,
+    apply_consistent_plot_style,
     load_fpca,
     parse_project_root_arg,
     paths,
@@ -29,7 +30,15 @@ from figure_common import (
 from trend_common import ar1_gls_trend, format_number, format_trend_ci, seasonal_domain_series
 
 
-REGION_COLORS = {"A": "#D55E00", "B": "#0072B2", "C": "#009E73"}
+# Easy to tweak: region order and map colors used in Figure S1.
+REGION_ORDER = ("A", "B", "C")
+REGION_COLORS = {
+    "A": "#EC4E20",
+    "B": "#E8C547",
+    "C": "#7286A0",
+}
+# Easy to tweak: map/legend placement for panel (a).
+MAP_LEGEND_BBOX = (1.03, 0.5)  # (x, y) in axes coordinates for legend anchor.
 PERIODS = {"Annual": list(range(1, 13)), "Summer": [1, 2, 3], "Winter": [7, 8, 9]}
 
 
@@ -54,7 +63,7 @@ def write_regional_table(
     dataset_labels = {"GLORYS": "GLORYS", "GLORYS_CL": r"$\textrm{GLORYS}_{\textrm{CL}}$", "CMA": "CMA"}
 
     rows = []
-    for region_code, (region_name, region_mask) in masks.items():
+    for region_code, (_region_name, region_mask) in masks.items():
         region_mask = region_mask.fillna(False)
         n_cells = int(region_mask.sum())
         for dataset_name in dataset_order:
@@ -66,25 +75,25 @@ def write_regional_table(
                 for tr in trends
             ]
             rows.append(
-                f"{region_code} & {region_name} & {dataset_labels[dataset_name]} & {n_cells} & "
+                f"{region_code} & {dataset_labels[dataset_name]} & {n_cells} & "
                 f"{format_number(rmse_value)} & " + " & ".join(trend_cells) + r" \\"
             )
 
     table = "\n".join(
         [
-            r"\begin{table}",
+            r"\begin{sidewaystable}",
             r"\centering",
             r"\caption{Regional reconstruction skill and AR(1)-adjusted trend estimates. RMSE is evaluated on the common co-located sampling mask. Trend slopes are in $\mathrm{m\,yr^{-1}}$ and are reported as slope [95\% CI] with the AR(1)-adjusted $p$-value in parenthesis.}",
             r"\label{tableS1}",
             r"\small",
-            r"\begin{tabular}{c|l|c|c|c|c|c|c}",
+            r"\begin{tabular}{clccccc}",
             r"\hline",
-            r"Region & Description & Dataset & Cells & RMSE & Annual & Summer & Winter \\",
+            r"Region & Dataset & Cells & RMSE & Annual & Summer & Winter \\",
             r"\hline",
             *rows,
             r"\hline",
             r"\end{tabular}",
-            r"\end{table}",
+            r"\end{sidewaystable}",
             "",
         ]
     )
@@ -95,7 +104,7 @@ def write_regional_table(
 def main() -> None:
     parser = parse_project_root_arg(argparse.ArgumentParser(description=__doc__))
     args = parser.parse_args()
-    plt.rcParams.update({"font.size": 16})
+    apply_consistent_plot_style()
 
     elevation, fronts = topo_fronts(args.project_root)
     fpca = load_fpca(args.project_root, max_modes=N_RECONSTRUCTION_MODES)
@@ -110,33 +119,38 @@ def main() -> None:
     }
     evaluation_mask = original_map["GLORYS_CL"]["mld"].notnull()
 
-    fig = plt.figure(figsize=(18, 10))
-    gs = fig.add_gridspec(2, 3, height_ratios=[1.2, 1], hspace=0.28, wspace=0.18)
-    ax_map = fig.add_subplot(gs[0, :])
-    ts_axes = [fig.add_subplot(gs[1, i]) for i in range(3)]
+    fig = plt.figure(figsize=(13, 20),constrained_layout = True)
+    gs = fig.add_gridspec(4, 1, height_ratios=[1.8, 1, 1, 1], hspace=0.1)
+    ax_map = fig.add_subplot(gs[0, 0])
+    ax_ts1 = fig.add_subplot(gs[1, 0])
+    ax_ts2 = fig.add_subplot(gs[2, 0], sharex=ax_ts1)
+    ax_ts3 = fig.add_subplot(gs[3, 0], sharex=ax_ts1)
+    ts_axes = [ax_ts1, ax_ts2, ax_ts3]
 
     region_code = xr.full_like(ds_g["xi1"], np.nan, dtype=float)
     for idx, (code, (_, mask)) in enumerate(masks.items(), start=1):
         region_code = region_code.where(~mask, idx)
-    cmap = ListedColormap([REGION_COLORS["A"], REGION_COLORS["B"], REGION_COLORS["C"]])
-    ax_map.pcolormesh(ds_g["long"], ds_g["lat"], region_code.transpose("lat", "long"), shading="auto", cmap=cmap, vmin=0.5, vmax=3.5, alpha=0.72)
+    cmap = ListedColormap([REGION_COLORS[code] for code in REGION_ORDER])
+    ax_map.pcolormesh(ds_g["long"], ds_g["lat"], region_code.transpose("lat", "long"), shading="auto", cmap=cmap, vmin=0.5, vmax=3.5, alpha=0.8)
     add_common_map_layers(ax_map, elevation, fronts)
-    ax_map.set_xlabel("Longitude [deg E]")
-    ax_map.set_ylabel("Latitude [deg N]")
+    ax_map.set_xlabel("Longitude [˚E]")
+    ax_map.set_ylabel("Latitude [˚N]")
+    ax_map.set_box_aspect(1)
     ax_map.text(
         0.01,
         0.98,
-        "(a) Fixed regional masks",
+        "(a)",
         transform=ax_map.transAxes,
         ha="left",
         va="top",
-        fontsize=16,
+        fontsize=20,
         fontweight="bold",
-        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2.5},
     )
     ax_map.legend(
-        handles=[Patch(facecolor=REGION_COLORS[code], label=f"{code}: {name}") for code, (name, _) in masks.items()],
-        loc="lower left",
+        handles=[Patch(facecolor=REGION_COLORS[code], label=f"Region {code}") for code in REGION_ORDER if code in masks],
+        loc="center left",
+        bbox_to_anchor=MAP_LEGEND_BBOX,
+        borderaxespad=0.0,
         fontsize=LEGEND_FS,
         framealpha=0.9,
     )
@@ -160,11 +174,21 @@ def main() -> None:
             )
         ax.axhline(0, color="k", linestyle="--", linewidth=1)
         ax.grid(alpha=0.3)
-        ax.set_title(f"({letter}) Region {region_code_key}: {region_name}", loc="left", fontsize=14, fontweight="bold")
-        ax.set_xlabel("Time")
+        ax.text(
+            0.01,
+            0.98,
+            f"({letter}) Region {region_code_key}",
+            transform=ax.transAxes,
+            ha="left",
+            va="top",
+            fontsize=20,
+            fontweight="bold",
+            bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.85, "pad": 2.5},
+        )
         ax.set_ylabel("MLD anomaly [m]")
-        ax.legend(fontsize=10, loc="best")
-
+        ax.legend(fontsize=LEGEND_FS, loc="upper right")
+    fig.align_ylabels(ts_axes)
+    ax_ts3.set_xlabel("Time")
     out_dir = paths(args.project_root)["figures"]
     write_regional_table(out_dir / "Table_S1_regional_trends.tex", ds_map, original_map, masks, evaluation_mask)
     for code, (_, mask) in masks.items():

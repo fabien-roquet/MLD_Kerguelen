@@ -14,8 +14,9 @@ This repository reconstructs monthly mixed-layer-depth (MLD) anomalies around th
 ## MLD and Gridding
 
 - Observational product: merged CORA, MEOP, and additional Argo profiles, referred to as CMA.
-- Current source file contains `97815` finite MLD profile values.
+- Current source file contains `97772` finite MLD profile values with `time <= 2023-12-31`.
 - CMA profile MLDs are binned by month, longitude bin, and latitude bin using mean MLD inside each bin.
+- Figure 1 uses the de-duplicated combined CMA profile set for both the map and the source bars. MEOP and CORA+ARGO bars are assigned by exact matching each combined profile on `(time, longitude, latitude, mld)` against the source files, which avoids double-counting across datasets.
 - MLD is defined consistently for every product with a density threshold relative to 10 m:
   - `Delta sigma0 = 0.03 kg m-3`.
   - This applies to CMA profile MLDs, full GLORYS, co-located GLORYS (`GLORYS_CL`), the GLORYS section product used for Figure 9, and KERFIX.
@@ -54,23 +55,31 @@ MLD'(p,t) = mu(t) + sum_k c_pk * xi_k(t)
 
 where `mu(t)` is the fPCA mean anomaly, `xi_k(t)` are temporal modes, and `c_pk` are spatial scores. For plotting consistency, mode 1 is sign-flipped for all products, and mode 2 is sign-flipped for `GLORYS_CL`; both the temporal mode and spatial score are flipped together, so the reconstruction is unchanged.
 
+<!-- BEGIN AUTO:CURRENT_DATA_STATS -->
 ## Current Data Statistics
 
 All values below are computed from the current `processed/` outputs.
 
 | Product | Finite monthly grid values | Mean MLD (m) | Std MLD (m) |
 |---|---:|---:|---:|
-| GLORYS | 307470 | 98.45 | 60.43 |
-| GLORYS_CL | 27339 | 102.61 | 57.03 |
-| CMA | 27149 | 109.21 | 68.94 |
+| GLORYS | 302,362 | 107.15 | 63.16 |
+| GLORYS_CL | 26,978 | 102.82 | 57.15 |
+| CMA | 27,148 | 109.21 | 68.94 |
 
-The CMA gridded observational coverage is `27149 / 310284 = 8.75%`. The R anomaly input for CMA has 31229 non-missing values (`10.06%`) because the Kerguelen island mask is encoded as zero to preserve the regular grid shape.
+The CMA gridded observational coverage is `27148 / 310284 = 8.75%`. The R anomaly input for CMA has 31229 non-missing values (`10.06%`) because the Kerguelen island mask is encoded as zero to preserve the regular grid shape.
 
-Spatial climatology correlations:
+Validated Figure 1 counts after the Kerguelen mask are `96216` combined profiles on the map, split into `76558` MEOP profiles and `19658` CORA+ARGO profiles in the bars. Those bar counts now sum exactly to the map total because they are derived from the same de-duplicated combined dataset.
 
-- GLORYS vs CMA: `0.668`.
+Figure 2 spatial climatology correlations (time-mean maps after masking the Kerguelen island, with each pair evaluated on its own common valid cells):
+
+- GLORYS vs CMA: `0.662`.
 - GLORYS_CL vs CMA: `0.817`.
-- GLORYS vs GLORYS_CL: `0.739`.
+- GLORYS vs GLORYS_CL: `0.729`.
+
+For reference, monthly pooled pointwise correlation at observed cells (not the Figure 2 metric) is `0.795` for `GLORYS_CL vs CMA`.
+
+These values are not computed on exactly the same missing-data mask across every product pair. In particular, `GLORYS_CL` is created by retaining only GLORYS values where CMA has observations, so `GLORYS_CL vs CMA` is the most direct comparison of the co-located products.
+<!-- END AUTO:CURRENT_DATA_STATS -->
 
 ## fPCA Variance Statistics
 

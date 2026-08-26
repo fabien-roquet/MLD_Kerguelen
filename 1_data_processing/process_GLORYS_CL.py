@@ -18,6 +18,7 @@ from processing_common import (
     kerguelen_mask,
     project_paths,
     rename_obs_coords,
+    same_grid_as_observations,
     write_anomaly_products,
     write_r_input,
 )
@@ -35,16 +36,20 @@ def process_glorys_cl(
     clim_file = paths.gridded / "GLORYS_CL_clim.nc"
     r_file = paths.r_input / "GLORYS_CL_masked.txt"
 
-    if not force and gridded_file.exists() and anom_file.exists() and clim_file.exists():
-        ds_anom = xr.open_dataset(anom_file)
-        write_r_input(ds_anom, r_file)
-        print("Reused existing GLORYS_CL NetCDF products.")
-        return
-
     # GLORYS_CL.ipynb: observations define the analysis box, final grid, and co-location mask.
     ds_obs_raw = xr.open_dataset(paths.data / "CORA_MEOP_ARGO_2026.nc")
     ds_obs_raw = rename_obs_coords(ds_obs_raw)
     ds_obs_grid = build_observation_grid(paths.root, nb_bins=nb_bins)
+
+    if not force and gridded_file.exists() and anom_file.exists() and clim_file.exists():
+        with xr.open_dataset(gridded_file) as ds_existing:
+            grid_ok = same_grid_as_observations(ds_existing, ds_obs_grid)
+        if grid_ok:
+            with xr.open_dataset(anom_file) as ds_anom:
+                write_r_input(ds_anom, r_file)
+            print("Reused existing GLORYS_CL NetCDF products.")
+            return
+        print("Existing GLORYS_CL grid differs from observation grid; recomputing GLORYS_CL products.")
 
     # GLORYS_CL.ipynb: open GLORYS and select the observation domain.
     ds_g = xr.open_dataset(paths.data / "GLORYS_2026.nc")
@@ -59,11 +64,13 @@ def process_glorys_cl(
     # GLORYS_CL.ipynb: bin/interpolate to the observation grid, then keep only observed cells.
     ds_cl = grid_glorys_mld(mld, ds_obs_grid, nb_bins=nb_bins)
     ds_cl["mld"] = ds_cl.mld.where(~np.isnan(ds_obs_grid.mld))
+    # Keep gridded-product masking consistent with CMA by removing Kerguelen island cells.
+    mask = kerguelen_mask(ds_cl)
+    ds_cl = ds_cl.where(~mask)
     ds_cl.to_netcdf(gridded_file)
     print(f"Wrote {gridded_file}")
 
     # GLORYS_CL.ipynb: mask Kerguelen, remove seasonal cycle, write R input.
-    mask = kerguelen_mask(ds_cl)
     ds_anom = write_anomaly_products(ds_cl, mask, anom_file, clim_file)
     write_r_input(ds_anom, r_file)
 

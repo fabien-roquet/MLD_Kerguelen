@@ -19,7 +19,37 @@ KERGUELEN_BOX = (68.25, 70.75, -50.0, -48.0)
 G_COLOR = "#0D160B"
 CMA_COLOR = "#008DD5"
 CL_COLOR = "#CB152B"
+BASE_FONT_SIZE = 20
 LEGEND_FS = 15
+AXIS_LABEL_FS = 20
+TICK_LABEL_FS = 16
+PANEL_LABEL_FS = 20
+COLORBAR_LABEL_FS = 18
+
+
+def apply_consistent_plot_style(
+    base_font_size: int = BASE_FONT_SIZE,
+    legend_font_size: int = LEGEND_FS,
+    tick_font_size: int = TICK_LABEL_FS,
+    label_font_size: int = AXIS_LABEL_FS,
+    title_font_size: int = PANEL_LABEL_FS,
+) -> None:
+    """Apply a single manuscript-style baseline for all plots and allow easy rollback."""
+    plt.rcParams.update(
+        {
+            "font.size": base_font_size,
+            "axes.titlesize": title_font_size,
+            "axes.labelsize": label_font_size,
+            "axes.titleweight": "bold",
+            "xtick.labelsize": tick_font_size,
+            "ytick.labelsize": tick_font_size,
+            "legend.fontsize": legend_font_size,
+            "figure.titlesize": title_font_size,
+            "axes.labelpad": 8,
+            "xtick.major.pad": 6,
+            "ytick.major.pad": 6,
+        }
+    )
 
 
 try:
@@ -79,10 +109,10 @@ def topo_fronts(project_root: str | Path = PROJECT_ROOT) -> tuple[xr.DataArray, 
 
 def add_common_map_layers(ax: plt.Axes, elevation: xr.DataArray, fronts: xr.Dataset, front_color: str = "k") -> None:
     (elevation / elevation).where(elevation > 0).plot(add_colorbar=False, cmap="gist_yarg", ax=ax)
-    cs = (-elevation).plot.contour(levels=(500, 1000, 2000), colors=["black"], linewidths=0.7, ax=ax)
-    ax.plot(fronts.LonSAF.where(fronts.LatSAF > -50), fronts.LatSAF.where(fronts.LatSAF > -50), c=front_color, lw=1)
-    ax.plot(fronts.LonPF, fronts.LatPF, c=front_color, lw=1)
-    ax.plot(fronts.LonSACCF, fronts.LatSACCF, c=front_color, lw=1)
+    cs = (-elevation).plot.contour(levels=(500, 1000, 2000), colors=["black"], linewidths=1, ax=ax)
+    ax.plot(fronts.LonSAF.where(fronts.LatSAF > -50), fronts.LatSAF.where(fronts.LatSAF > -50), c=front_color, lw=2.5)
+    ax.plot(fronts.LonPF, fronts.LatPF, c=front_color, lw=2.5)
+    ax.plot(fronts.LonSACCF, fronts.LatSACCF, c=front_color, lw=2.5)
     ax.clabel(cs, inline=True, fmt="%1.0f", fontsize=10)
     ax.set_xticks([60, 65, 70, 75, 80])
     ax.set_yticks([-60, -55, -50, -45, -40])
